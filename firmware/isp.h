@@ -57,7 +57,7 @@ uchar ispReadFlash(unsigned long address);
 uchar ispWriteEEPROM(unsigned int address, uchar data);
 
 /* pointer to sw or hw transmit function */
-uchar (*ispTransmit)(uchar);
+extern uchar (*ispTransmit)(uchar);
 
 /* set SCK speed. call before ispConnect! */
 void ispSetSCKOption(uchar sckoption);

@@ -6,7 +6,7 @@
  * 2021 WCID support by Dimitrios Chr. Ioannidis ( d.ioannidis@nephelae.eu )
  *      ( based on Marius Greuel's https://github.com/mariusgreuel/USBasp )
  * 2022 Composite WCID and HID by Dimitrios Chr. Ioannidis ( d.ioannidis@nephelae.eu )
- * 2023 Serial Number write via HID and 
+ * 2023 Serial Number write via HID and
  *      descriptors stored in EEPROM by Dimitrios Chr. Ioannidis ( d.ioannidis@nephelae.eu )
  *
  * License........: GNU GPL v2 (see Readme.txt)
@@ -53,10 +53,10 @@ static uchar featureReport[8] = {
     0,                                             /* Prescaler Low byte */
     0,                                             /* Prescaler High byte */
     0,                                             /* Bitmask Parity, StopBit and DataBit */
-    0,                                             /* Reserved */    
+    0,                                             /* Reserved */
     0
 #ifdef __TPI__
-    | USBASP_CAP_0_TPI  
+    | USBASP_CAP_0_TPI
 #endif
 #ifdef __HIDUART__
     | USBASP_CAP_HIDUART | USBASP_CAP_SNHIDUPDATE
@@ -88,11 +88,11 @@ static uchar prog_pagecounter;
 
     Based on the hard work by Marius Greuel @mariusgreuel ( https://github.com/mariusgreuel/USBasp ).
     This is a non intrusive version, using an unaltered V-USB with no changes in it's usbdrv code.
-    
-    Move from Microsoft OS 1.0 Descriptors to Microsoft OS 2.0 Descriptors. This configuration MUST have a serial to work. 
-    
+
+    Move from Microsoft OS 1.0 Descriptors to Microsoft OS 2.0 Descriptors. This configuration MUST have a serial to work.
+
     Also it seems to work with USB 3.0 ports ( at least it seems to work in my limited testing ).
-    
+
     TODO: Write comments how it works ...
 
 */
@@ -141,14 +141,14 @@ usbMsgLen_t usbFunctionSetup(uchar data[8]) {
             } else if (data[1] == USBASP_FUNC_DISCONNECT) {
                 ispDisconnect();
                 ledRedOff();
-  
+
                 /*  If the prescaler "baud" is non zero then it means that
                 UART was open and it was interrupted by an ISP connect command.
                 Re enable the UART */
 
 #ifdef __HIDUART__
                 uart_state = uart_config(featureReport);
-#endif                
+#endif
 
             } else if (data[1] == USBASP_FUNC_TRANSMIT) {
                 replyBuffer[0] = ispTransmit(data[2]);
@@ -283,14 +283,14 @@ usbMsgLen_t usbFunctionSetup(uchar data[8]) {
                 we replied earlier in the BOS Descriptor request. See usbFunctionDescriptor. */
             } else if((data[1] == VENDOR_CODE) &&
                     (data[4] == MS_OS_2_0_DESCRIPTOR_INDEX)) {
-        
+
                         usbMsgFlags = USB_FLG_MSGPTR_IS_ROM;
                         usbMsgPtr = (usbMsgPtr_t)&MS_2_0_OS_DESCRIPTOR_SET;
                         len = sizeof(MS_2_0_OS_DESCRIPTOR_SET);
                         goto dontAssMsgPtr;
 
                     }
-            
+
         }
 
     /* Interface Requests */
@@ -342,7 +342,7 @@ uchar usbFunctionRead(uchar *data, uchar len) {
 
     /* check if programmer is in correct read state */
     if ((prog_state != PROG_STATE_READFLASH) && (prog_state
-            != PROG_STATE_READEEPROM) 
+            != PROG_STATE_READEEPROM)
 #ifdef __TPI__
             && (prog_state != PROG_STATE_TPI_READ)
 #endif
@@ -386,16 +386,16 @@ uchar usbFunctionRead(uchar *data, uchar len) {
 uchar usbFunctionWrite(uchar *data, uchar len) {
 
     DBG1(0xF3, data, len);
-    
+
     uchar retVal = 0;
     uchar i;
 
     /* check if programmer is in correct write state */
-    if ((prog_state != PROG_STATE_WRITEFLASH) && (prog_state
-            != PROG_STATE_WRITEEEPROM) 
+    if ((prog_state != PROG_STATE_WRITEFLASH)
+            && (prog_state != PROG_STATE_WRITEEEPROM)
 #ifdef __TPI__
             && (prog_state != PROG_STATE_TPI_WRITE)
-#endif            
+#endif
             && (prog_state != PROG_STATE_SET_REPORT)) {
         return 0xff;
     }
@@ -458,37 +458,37 @@ uchar usbFunctionWrite(uchar *data, uchar len) {
             prog_address++;
         }
     }
-    
+
     /* Feature report */
-    if(prog_state == PROG_STATE_SET_REPORT) 
+    if(prog_state == PROG_STATE_SET_REPORT)
     {
 
         switch (data[3]) {
-            case 0: {                                             
+            case 0: {
 
-    /*  The first 2 bytes are the uart prescaler ( low byte first then high byte second ) 
-        UART settings. The 3rd byte is a bitmask for parity, stop bit and data bit. 
+    /*  The first 2 bytes are the uart prescaler ( low byte first then high byte second )
+        UART settings. The 3rd byte is a bitmask for parity, stop bit and data bit.
         The 4th byte is reserved for future.
-            
+
         The last 4 bytes are the USBasp capabilities which are readonly. */
 
                     featureReport[0] = data[0];
                     featureReport[1] = data[1];
                     featureReport[2] = data[2];
 
-    /*  To enable the UART the baud needs to be non zero. 
-        Meaning that to disable the UART communication send a set feature report 
+    /*  To enable the UART the baud needs to be non zero.
+        Meaning that to disable the UART communication send a set feature report
         with the prescaler ( first 2 bytes ) zeroed. */
-#ifdef __HIDUART__        
+#ifdef __HIDUART__
                     uart_state = uart_config(featureReport);
                 }
                 break;
             case 1: {
-                
+
                     serialNumberWrite(data);
 
 #endif
-               
+
                 }
                 break;
             default:
@@ -511,17 +511,17 @@ uchar usbFunctionWrite(uchar *data, uchar len) {
  *
  *  i.e.
  *
- *  Input or Output Report 
- *  
+ *  Input or Output Report
+ *
  *  0x55,0x34,0x00,0x00,0x00,0x00,0x00,0x02 -> Actual serial bytes 2 : 0x55,0x34
- *  
+ *
  *  0x00,0x34,0x00,0x66,0x32,0x36,0x00,0x04 -> Actual serial bytes 4 : 0x00,0x34,0x00,0x66
- *  
+ *
  *  0x00,0xC3,0x34,0x55,0x32,0xF3,0x00,0xAB -> Actual serial bytes 8 ( 8th byte > 7 ) : 0x00,0xC3,0x34,0x55,0x32,0xF3,0x00,0xAB
  *
  */
 
-#ifdef __HIDUART__        
+#ifdef __HIDUART__
 
 /* Host to device. Endpoint 1 Output */
 void usbFunctionWriteOut(uchar *data, uchar len){
@@ -532,15 +532,15 @@ void usbFunctionWriteOut(uchar *data, uchar len){
         is actual serial data, depending on the folowing condition:
 
         If the next byte value in the buffer is greater than 7
-        then we treated it as serial data and added it to the out 
+        then we treated it as serial data and added it to the out
         report else the 8th byte holds the serial data count. This
         way the receiver can distinguish the meaning of the 8th byte
-        if it is serial data or actually the serial data count.                
-        
+        if it is serial data or actually the serial data count.
+
         With this algorithm we can reliably send 700 - 800 bytes per second
         ( the probability to have 100 7 value at the 8th place of report
-        is very low. So the 700 bytes/s is a very rare worst case scenario ), 
-        if the host controller polls every 10ms as the spec for USB 1.1 says. 
+        is very low. So the 700 bytes/s is a very rare worst case scenario ),
+        if the host controller polls every 10ms as the spec for USB 1.1 says.
         But in my tests the host controller or the USB 2.0 hub poll the
         device every ~8 ms, effectively increasing the amount of bytes to
         send to 875 - 1000 bytes/s ( again below 970 bytes/s is a rare case )
@@ -554,8 +554,8 @@ void usbFunctionWriteOut(uchar *data, uchar len){
         } else {
             len = 0;
         }
-        
-    /*  If UART enabled ( RXCIE enabled ) 
+
+    /*  If UART enabled ( RXCIE enabled )
         is there serial data in the report ? */
         if(len && (USBASPUART_UCSRB & (1<<USBASPUART_RXCIE))) {
 
@@ -564,54 +564,54 @@ void usbFunctionWriteOut(uchar *data, uchar len){
             if((CBUF_Len(tx_Q)) + len > (tx_Q_SIZE - 8)) {
                 usbDisableAllRequests();
             }
-                                   
+
             do{
                 *CBUF_GetPushEntryPtr(tx_Q) = *data++;
-                CBUF_AdvancePushIdx(tx_Q);                                              
+                CBUF_AdvancePushIdx(tx_Q);
             }while(--len);
-                     
+
         }
-        
+
 }
 
 /* Device to host. Endpoint 1 Input */
 void HID_EP_1_IN(){
 
     uint8_t count = 0;
-    
+
     /*  We fill the first 7 bytes of the report from
         the receive buffer if they are exist. */
     while((!(CBUF_IsEmpty(rx_Q))) && (count != 7)){
         interruptBuffer[count++] = CBUF_Get(rx_Q, 0);
         CBUF_AdvancePopIdx(rx_Q);
     }
-    
+
     interruptBuffer[7] = count;
 
     /*  The 8th byte ( interruptBuffer[7] ), holds the serial bytes count or
         is actual serial data, depending on the folowing condition:
 
         If the next byte value in the buffer is greater than 7
-        then we treated it as serial data and added it to the out 
+        then we treated it as serial data and added it to the out
         report else the 8th byte holds the serial data count. This
         way the receiver can distinguish the meaning of the 8th byte
-        if it is serial data or actually the serial data count.                
-        
+        if it is serial data or actually the serial data count.
+
         With this algorithm we can reliably send 700 - 800 bytes per second
         ( the probability to have 100 7 value at the 8th place of report
-        is very low. So the 700 bytes/s is a very rare worst case scenario ), 
-        if the host controller polls every 10ms as the spec for USB 1.1 says. 
+        is very low. So the 700 bytes/s is a very rare worst case scenario ),
+        if the host controller polls every 10ms as the spec for USB 1.1 says.
         But in my tests the host controller or the USB 2.0 hub poll the
         device every ~8 ms, effectively increasing the amount of bytes to
         send to 875 - 1000 bytes/s ( again below 970 bytes/s is a rare case )
         which is enough (more or less) for 9600 Baud ( real speed 960 Bytes/s ).
     */
-        
+
     if(!(CBUF_IsEmpty(rx_Q)) && (count == 7)){
         uint8_t tmp = CBUF_Get(rx_Q, 0);
         if(tmp > count) {
             interruptBuffer[count] = tmp;
-            CBUF_AdvancePopIdx(rx_Q);        
+            CBUF_AdvancePopIdx(rx_Q);
         }
     }
 
@@ -629,7 +629,7 @@ void HID_EP_3_IN(){
     // monitorBuffer[5] = 0;
     // monitorBuffer[6] = 0;
     monitorBuffer[7] = prog_state | uart_state;
- 
+
     usbSetInterrupt3(monitorBuffer, sizeof(monitorBuffer));
 }
 
@@ -642,14 +642,17 @@ int main(void) {
 
     /* init timer */
     clockInit();
-    
+
     /* output SE0 for USB reset */
-    DDRB = ~0;
+    DDRD = ~0;
     clockWait(10 / 0.320);              /* 10ms */
     /* all USB and ISP pins inputs to end USB reset */
-    DDRB = 0;
+    DDRD = 1 << PD7;
+    PORTD = 1 << PD7;
 
     /* USBasp active */
+    ledInit();
+    ledRedOff();
     ledGreenOn();
 
     /* main event loop */
@@ -657,26 +660,26 @@ int main(void) {
 
     sei();
     for (;;) {
-  
-#ifdef __HIDUART__        
+
+#ifdef __HIDUART__
         /*  Enable transmit interrupt if tx buffer has data
             and the transmit interrupt is disabled. */
-        if(!(USBASPUART_UCSRB & (1<<USBASPUART_UDRIE)) 
+        if(!(USBASPUART_UCSRB & (1<<USBASPUART_UDRIE))
             && !CBUF_IsEmpty(tx_Q)) {
 
             USBASPUART_UCSRB |= (1<<USBASPUART_UDRIE);
 
-        /*  Reenable USB requests if they are 
+        /*  Reenable USB requests if they are
             disabled and tx buffer is empty. */
         } else if(CBUF_IsEmpty(tx_Q)) {
             if(usbAllRequestsAreDisabled()){
                 usbEnableAllRequests();
             }
         }
-#endif    
+#endif
         usbPoll();
 
-#ifdef __HIDUART__        
+#ifdef __HIDUART__
         if (usbInterruptIsReady()) {
             HID_EP_1_IN();
         }

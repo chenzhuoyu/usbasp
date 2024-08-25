@@ -17,6 +17,7 @@
 
 uchar sck_sw_delay;
 uchar isp_hiaddr;
+uchar (*ispTransmit)(uchar);
 
 static inline void spiHWenable() {
     /* enable SPI, master */
@@ -186,7 +187,7 @@ uchar ispEnterProgrammingMode() {
         uchar tries = 3;
         do {
             /* AVR probe */
-            
+
             /* pulse RST */
             ISP_OUT |= (1 << ISP_RST);      /* RST high */
             clockWait(1);                   /* 320us */
@@ -213,22 +214,22 @@ uchar ispEnterProgrammingMode() {
                 // }
                 return 0;
             }
-            
-            
+
+
             /* AT89* Probe */
-            
+
             ISP_OUT |= (1 << ISP_RST);      /* RST high */
             clockWait(5);                   /* 1.6 ms */
-            
+
             spiTx(0xAC);
             spiTx(0x53);
             spiTx(0);
             check = spiTx(0);
 
-            if (check == 0x69){ 
+            if (check == 0x69){
                 return 0;
             }
-            
+
         } while (--tries);
 
         spiHWdisable();
@@ -312,7 +313,7 @@ uchar ispWriteFlash(unsigned long address, uchar data, uchar pollmode) {
 uchar ispFlushPage(unsigned long address, uchar pollvalue) {
 
     ispUpdateExtended(address);
-    
+
     ispTransmit(0x4C);                  // write page
     ispTransmit(address >> 9);
     ispTransmit(address >> 1);

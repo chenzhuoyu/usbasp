@@ -101,9 +101,10 @@
 
 /* macros for gpio functions */
 /* LEDs are active low */
-#define ledRedOff()                     DDRC &= ~(1 << PC1)
-#define ledRedOn()                      DDRC |= (1 << PC1)
-#define ledGreenOff()                   DDRC &= ~(1 << PC0)
-#define ledGreenOn()                    DDRC |= (1 << PC0)
+#define ledInit()                       DDRB |= (1 << PB0) | (1 << PB1)
+#define ledRedOff()                     PORTB |= 1 << PB1
+#define ledRedOn()                      PORTB &= ~(1 << PB1)
+#define ledGreenOff()                   PORTB |= 1 << PB0
+#define ledGreenOn()                    PORTB &= ~(1 << PB0)
 
 #endif /* USBASP_H_ */
